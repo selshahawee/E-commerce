@@ -2,8 +2,8 @@ import { Dialog, Tab, Transition } from '@headlessui/react'
 import { XIcon } from '@heroicons/react/outline'
 import { classNames } from 'lib'
 import { Fragment } from 'react'
-import { Navigation } from 'types'
-const navigation: Navigation = {
+import { Category, Navigation } from 'types'
+const navigation: any = {
   categories: [
     {
       name: 'Women',
@@ -139,7 +139,7 @@ function Drawer({ open, setOpen }: props) {
               <Tab.Group as="div" className="mt-2">
                 <div className="border-b border-gray-200">
                   <Tab.List className="-mb-px flex space-x-8 px-4">
-                    {navigation.categories.map((category) => (
+                    {navigation.categories.map((category:any) => (
                       <Tab
                         key={category.name}
                         className={({ selected }) =>
@@ -157,23 +157,23 @@ function Drawer({ open, setOpen }: props) {
                   </Tab.List>
                 </div>
                 <Tab.Panels as={Fragment}>
-                  {navigation.categories.map((category) => (
+                  {navigation.categories.map((category:any) => (
                     <Tab.Panel
                       key={category.name}
                       className="space-y-12 px-4 py-6"
                     >
                       <div className="grid grid-cols-2 gap-x-4 gap-y-10">
-                        {category.featured.map((item) => (
+                        {category.featured.map((item:any) => (
                           <div key={item.name} className="group relative">
                             <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-md bg-gray-100 group-hover:opacity-75">
                               <img
-                                src={item.imageSrc}
-                                alt={item.imageAlt}
+                                src={item?.imageSrc}
+                                alt={item?.imageAlt}
                                 className="object-cover object-center"
                               />
                             </div>
                             <a
-                              href={item.href}
+                              href={'/products/' + item.slug}
                               className="mt-6 block text-sm font-medium text-gray-900"
                             >
                               <span
@@ -197,7 +197,7 @@ function Drawer({ open, setOpen }: props) {
               </Tab.Group>
 
               <div className="space-y-6 border-t border-gray-200 py-6 px-4">
-                {navigation.pages.map((page) => (
+                {navigation.pages.map((page:any) => (
                   <div key={page.name} className="flow-root">
                     <a
                       href={page.href}

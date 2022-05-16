@@ -1,5 +1,9 @@
 import type { NextPage } from 'next'
 import Layout from 'components/layout'
+import axios from 'axios'
+import useSWR from 'swr'
+import { Product, ProductsApiRes } from 'types'
+import ProductPage from './product/[slug]'
 
 const collections = [
   {
@@ -35,7 +39,7 @@ const trendingProducts = [
     imageSrc:
       'https://tailwindui.com/img/ecommerce-images/home-page-04-trending-product-02.jpg',
     imageAlt: 'Hand stitched, orange leather long wallet.',
-  }
+  },
 ]
 const perks = [
   {
@@ -69,6 +73,12 @@ const perks = [
 ]
 
 const Home: NextPage = () => {
+  const address = `/api/products`
+  const fetcher = async (url: string) =>
+    await axios.get(url).then((res) => res.data)
+  const { data, error } = useSWR<ProductsApiRes>(address, fetcher)
+
+
   return (
     <div className="">
       <Layout>
@@ -191,23 +201,23 @@ const Home: NextPage = () => {
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-4 md:gap-y-0 lg:gap-x-8">
-                {trendingProducts.map((product) => (
+                {data?.products?.map((product) => (
                   <div key={product.id} className="group relative">
                     <div className="h-56 w-full overflow-hidden rounded-md group-hover:opacity-75 lg:h-72 xl:h-80">
                       <img
-                        src={product.imageSrc}
-                        alt={product.imageAlt}
+                        src={product.images[0]?.imageSrc}
+                        alt={product.images[0]?.imageAlt}
                         className="h-full w-full object-cover object-center"
                       />
                     </div>
                     <h3 className="mt-4 text-sm text-gray-700">
-                      <a href={product.href}>
+                      <a href={`/product/${product.slug}`}>
                         <span className="absolute inset-0" />
                         {product.name}
                       </a>
                     </h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      {product.color}
+                      {product.variants[0]?.color}
                     </p>
                     <p className="mt-1 text-sm font-medium text-gray-900">
                       {product.price}

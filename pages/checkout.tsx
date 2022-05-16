@@ -2,8 +2,15 @@ import { RadioGroup } from '@headlessui/react'
 import { CheckCircleIcon, TrashIcon } from '@heroicons/react/solid'
 import Dropdown from 'components/dropdown'
 import Layout from 'components/layout'
+import { useFormik } from 'formik'
 import { classNames } from 'lib'
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { clearCart, removeFromCart, updateCartQty } from 'redux/reducers/app'
+import { RootState } from 'redux/store'
+import { toast } from 'react-toastify'
+import { CartItem } from 'types'
+import { v4 as uuid } from 'uuid'
 
 const products = [
   {
@@ -37,9 +44,9 @@ const deliveryMethods = [
     id: 1,
     title: 'Standard',
     turnaround: '4–10 business days',
-    price: '$5.00',
+    price: 5.0,
   },
-  { id: 2, title: 'Express', turnaround: '2–5 business days', price: '$16.00' },
+  { id: 2, title: 'Express', turnaround: '2–5 business days', price: 16.0 },
 ]
 const paymentMethods = [
   { id: 'credit-card', title: 'Credit card' },
@@ -52,6 +59,75 @@ export default function Example() {
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(
     deliveryMethods[0]
   )
+
+  const cart = useSelector((state: RootState) => state.app.cartItems)
+  const dispatch = useDispatch()
+
+  const subtotal = calTotal(cart)
+
+  function calTotal(arr: CartItem[]) {
+    let total = 0
+    for (const item of arr) {
+      total += +item.price * item.cartQty
+    }
+    return total
+  }
+
+  const unique_id = uuid()
+  const handleRemoveFromCart = (cartItem: CartItem[]) => {
+    dispatch(removeFromCart(cartItem))
+  }
+
+  let shipping = selectedDeliveryMethod.price
+
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
+
+
+
+  const formik = useFormik({
+    initialValues: {
+      firstName: '',
+      email: '',
+      lastName: '',
+      company: '',
+      address: '',
+      apartment: '',
+      city: '',
+      postalCode: '',
+      region: '',
+      phone: '',
+      country: 'United States',
+      nameOnCard: '',
+      expiryDate: '',
+      cvc: '',
+      paymentType: '',
+      cardNumber: '',
+      items: cart,
+    },
+
+    onSubmit: async (values) => {
+      formik.resetForm()
+     
+      const rawResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...values, id: unique_id }),
+      })
+      const content = await rawResponse.json()
+
+      toast.info('Order Submitted ', {
+        position: 'bottom-left',
+      })
+
+      handleClearCart();
+      console.log(content)
+    },
+  })
 
   return (
     <Layout>
@@ -76,9 +152,11 @@ export default function Example() {
                     </label>
                     <div className="mt-1">
                       <input
+                        onChange={formik.handleChange}
+                        value={formik.values.email}
                         type="email"
                         id="email-address"
-                        name="email-address"
+                        name="email"
                         autoComplete="email"
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       />
@@ -101,9 +179,11 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.firstName}
                           type="text"
                           id="first-name"
-                          name="first-name"
+                          name="firstName"
                           autoComplete="given-name"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
@@ -119,9 +199,11 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.lastName}
                           type="text"
                           id="last-name"
-                          name="last-name"
+                          name="lastName"
                           autoComplete="family-name"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
@@ -137,6 +219,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.company}
                           type="text"
                           name="company"
                           id="company"
@@ -154,6 +238,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.address}
                           type="text"
                           name="address"
                           id="address"
@@ -172,6 +258,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.apartment}
                           type="text"
                           name="apartment"
                           id="apartment"
@@ -189,6 +277,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.city}
                           type="text"
                           name="city"
                           id="city"
@@ -207,6 +297,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <select
+                          onChange={formik.handleChange}
+                          value={formik.values.country}
                           id="country"
                           name="country"
                           autoComplete="country-name"
@@ -228,6 +320,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.region}
                           type="text"
                           name="region"
                           id="region"
@@ -246,8 +340,10 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.postalCode}
                           type="text"
-                          name="postal-code"
+                          name="postalCode"
                           id="postal-code"
                           autoComplete="postal-code"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -264,6 +360,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.phone}
                           type="text"
                           name="phone"
                           id="phone"
@@ -361,8 +459,10 @@ export default function Example() {
                         >
                           {paymentMethodIdx === 0 ? (
                             <input
+                              onChange={formik.handleChange}
+                              value={formik.values.paymentType}
                               id={paymentMethod.id}
-                              name="payment-type"
+                              name="paymentType"
                               type="radio"
                               defaultChecked
                               className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
@@ -397,9 +497,11 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.cardNumber}
                           type="text"
                           id="card-number"
-                          name="card-number"
+                          name="cardNumber"
                           autoComplete="cc-number"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
@@ -415,9 +517,11 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.nameOnCard}
                           type="text"
                           id="name-on-card"
-                          name="name-on-card"
+                          name="nameOnCard"
                           autoComplete="cc-name"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
@@ -433,8 +537,10 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.expiryDate}
                           type="text"
-                          name="expiration-date"
+                          name="expiryDate"
                           id="expiration-date"
                           autoComplete="cc-exp"
                           className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -451,6 +557,8 @@ export default function Example() {
                       </label>
                       <div className="mt-1">
                         <input
+                          onChange={formik.handleChange}
+                          value={formik.values.cvc}
                           type="text"
                           name="cvc"
                           id="cvc"
@@ -472,12 +580,12 @@ export default function Example() {
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
                   <h3 className="sr-only">Items in your cart</h3>
                   <ul role="list" className="divide-y divide-gray-200">
-                    {products.map((product) => (
-                      <li key={product.id} className="flex py-6 px-4 sm:px-6">
+                    {cart.map((cartItem: any) => (
+                      <li key={cartItem.id} className="flex py-6 px-4 sm:px-6">
                         <div className="flex-shrink-0">
                           <img
-                            src={product.imageSrc}
-                            alt={product.imageAlt}
+                            src={cartItem.images[0].imageSrc}
+                            alt={cartItem.images[0].imageAlt}
                             className="w-20 rounded-md"
                           />
                         </div>
@@ -487,17 +595,17 @@ export default function Example() {
                             <div className="min-w-0 flex-1">
                               <h4 className="text-sm">
                                 <a
-                                  href={product.href}
+                                  href={cartItem.slug}
                                   className="font-medium text-gray-700 hover:text-gray-800"
                                 >
-                                  {product.title}
+                                  {cartItem.name}
                                 </a>
                               </h4>
                               <p className="mt-1 text-sm text-gray-500">
-                                {product.color}
+                                {cartItem.color}
                               </p>
                               <p className="mt-1 text-sm text-gray-500">
-                                {product.size}
+                                {cartItem.size}
                               </p>
                             </div>
 
@@ -505,6 +613,7 @@ export default function Example() {
                               <button
                                 type="button"
                                 className="-m-2.5 flex items-center justify-center bg-white p-2.5 text-gray-400 hover:text-gray-500"
+                                onClick={() => handleRemoveFromCart(cartItem)}
                               >
                                 <span className="sr-only">Remove</span>
                                 <TrashIcon
@@ -517,21 +626,23 @@ export default function Example() {
 
                           <div className="flex flex-1 items-end justify-between pt-2">
                             <p className="mt-1 text-sm font-medium text-gray-900">
-                              {product.price}
+                              {cartItem.cartQty * cartItem.price}
                             </p>
 
                             <div className="ml-4">
                               <label htmlFor="quantity" className="sr-only">
-                                Quantity
+                                {cartItem.availableQty}
                               </label>
                               <Dropdown
                                 onChange={(value) => {
-                                  console.log('hello world' + value)
+                                  const data = { id: cartItem.id, value }
+                                  dispatch(updateCartQty(data))
                                 }}
                                 values={Array.from(
-                                  Array(product.availableQty),
+                                  Array(+cartItem.variants[0].availableQty),
                                   (_, i) => i + 1
                                 )}
+                                value={cartItem.cartQty}
                               />
                             </div>
                           </div>
@@ -539,37 +650,46 @@ export default function Example() {
                       </li>
                     ))}
                   </ul>
-                  <dl className="space-y-6 border-t border-gray-200 py-6 px-4 sm:px-6">
-                    <div className="flex items-center justify-between">
-                      <dt className="text-sm">Subtotal</dt>
-                      <dd className="text-sm font-medium text-gray-900">
-                        $64.00
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-sm">Shipping</dt>
-                      <dd className="text-sm font-medium text-gray-900">
-                        $5.00
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-sm">Taxes</dt>
-                      <dd className="text-sm font-medium text-gray-900">
-                        $5.52
-                      </dd>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                      <dt className="text-base font-medium">Total</dt>
-                      <dd className="text-base font-medium text-gray-900">
-                        $75.52
-                      </dd>
-                    </div>
-                  </dl>
+                  {cart.map((cartItem: any) => (
+                    <dl
+                      className="space-y-6 border-t border-gray-200 py-6 px-4 sm:px-6"
+                      key={cartItem.id}
+                    >
+                      <div className="flex items-center justify-between">
+                        <dt className="text-sm">Subtotal</dt>
 
+                        <dd className="text-sm font-medium text-gray-900">
+                          ${subtotal}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <dt className="text-sm">Shipping</dt>
+                        <dd className="text-sm font-medium text-gray-900">
+                          {selectedDeliveryMethod.price}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <dt className="text-sm">Taxes</dt>
+                        <dd className="text-sm font-medium text-gray-900">
+                          ${Math.round(subtotal * 0.1)}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-gray-200 pt-6">
+                        <dt className="text-base font-medium">Total</dt>
+                        <dd className="text-base font-medium text-gray-900">
+                          ${Math.round(subtotal + subtotal * 0.1) + shipping}
+                        </dd>
+                      </div>
+                    </dl>
+                  ))}
                   <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                     <button
                       type="submit"
                       className="w-full rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+                      onClick={(event: React.MouseEvent<HTMLElement>) => {
+                        event.preventDefault()
+                        formik.handleSubmit()
+                      }}
                     >
                       Confirm order
                     </button>
