@@ -3,7 +3,7 @@ import { XIcon } from '@heroicons/react/outline'
 import { classNames } from 'lib'
 import { Fragment } from 'react'
 import { Category, Navigation } from 'types'
-const navigation: any = {
+const navigation = {
   categories: [
     {
       name: 'Women',

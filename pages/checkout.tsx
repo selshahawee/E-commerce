@@ -126,6 +126,9 @@ export default function Example() {
 
       handleClearCart();
       console.log(content)
+      const email = await fetch("/api/email")
+      const emailResponse = await email.json()
+      console.log(emailResponse)
     },
   })
 
