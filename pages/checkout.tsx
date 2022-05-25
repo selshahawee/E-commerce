@@ -74,7 +74,7 @@ export default function Example() {
   }
 
   const unique_id = uuid()
-  const handleRemoveFromCart = (cartItem: CartItem[]) => {
+  const handleRemoveFromCart = (cartItem: CartItem) => {
     dispatch(removeFromCart(cartItem))
   }
 
@@ -583,7 +583,7 @@ export default function Example() {
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
                   <h3 className="sr-only">Items in your cart</h3>
                   <ul role="list" className="divide-y divide-gray-200">
-                    {cart.map((cartItem: any) => (
+                    {cart.map((cartItem: CartItem) => (
                       <li key={cartItem.id} className="flex py-6 px-4 sm:px-6">
                         <div className="flex-shrink-0">
                           <img

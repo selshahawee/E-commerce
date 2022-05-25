@@ -9,6 +9,7 @@ import axios from 'axios'
 import { Product, ProductApiRes, ProductsApiRes } from 'types'
 import { addToCart } from 'redux/reducers/app'
 import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'redux/store'
 
 const reviews = {
   href: '#',
@@ -62,7 +63,7 @@ export default function ProductPage() {
   const fetcher = async (url: string) => {
     return await axios.get(url).then((res) => res.data)
   }
-  const cart = useSelector((state: any) => state.app.cartItems)
+  const cart = useSelector((state: RootState) => state.app.cartItems)
   const cartItem = cart.find((product: Product) => product.slug === slug)
 
 
@@ -76,7 +77,7 @@ export default function ProductPage() {
 
   if (!product) return <div>loading</div>
 
-  const hamada =cartItem?.cartQty >= product.variants[0].availableQty 
+  const disableButton =cartItem && cartItem?.cartQty >= +product.variants[0].availableQty 
   
   return (
     <Layout>
@@ -262,13 +263,13 @@ export default function ProductPage() {
 
               <button
                 type="submit"
-                className={(hamada ? ' bg-white text-gray-900 mt-10 flex w-full items-center justify-center rounded-md border border-transparent'
+                className={(disableButton ? ' bg-white text-gray-900 mt-10 flex w-full items-center justify-center rounded-md border border-transparent'
                   : "mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-8 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2")}
                 onClick={(e) => {
                   e.preventDefault()
                   handleAddToCart(product)
                 }}
-                disabled={hamada}
+                disabled={disableButton}
               >
                 Add to bag
               </button>

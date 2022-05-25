@@ -17,7 +17,7 @@ export interface CartItem extends Product{
   color: string
   size: string
   price: number,
-
+  availableQty: number
 
  
 }
